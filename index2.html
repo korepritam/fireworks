@@ -1,0 +1,205 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.js"></script>
+ 
+  <script language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.js"></script>
+  <script  language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.sound.js"> </script> 
+  
+  	
+<script>
+function Particle(x,y,col,firework)
+{
+
+  this.pos=createVector(x,y);
+  this.firework=firework;
+  this.lifespan=255;
+  this.col=col;
+  
+  if(firework){ //if the firework is not exploded (see exploded() function in firework.js)
+  this.vel=createVector(random(-10,+10),random(-20,-10));		
+  }
+  else
+  {
+	//firework starts to explore
+    this.vel=p5.Vector.random2D(100,50);
+    this.vel.mult(random(5,20)); 
+  
+  }
+  this.acc=createVector(0,0);
+
+
+
+this.applyForce = function(force)//applying the gravitaional force
+{
+  this.acc.add(force);
+}
+
+
+this.update = function() //to update position of the particle
+{
+  if(!this.firework)
+  {
+    this.vel.mult(0.85);
+    this.lifespan-=2;//lifespan to display the particles
+  }
+  this.vel.add(this.acc);
+  this.pos.add(this.vel);
+  this.acc.mult(0);
+}
+
+
+this.done = function()//when the lifespan is zero firwoek is done
+{
+  if(this.lifespan<0)
+    {return true;}
+  else
+  {
+    return false;
+  }
+}
+
+this.show = function()
+{
+  colorMode(HSB);
+  if(!this.firework)
+  {stroke(col,255,255,this.lifespan);
+  strokeWeight(2);
+}
+else
+{
+stroke(col,255,255);
+strokeWeight(6);
+}
+  point(this.pos.x,this.pos.y)
+   
+}
+
+}
+  </script>
+  <script>
+  	 var firework;
+
+ function Firework()
+ {
+
+  this.col=random(255);
+  this.firework= new Particle(windowWidth/2,height ,this.col, true); //Here firework is object instantiated by 'Particle()' function
+  this.exploded=false;
+  this.particles = [];
+
+
+  this.done=function()//when the all 100 particles are exploded
+  {
+    if(this.exploded && this.particles.length===0)
+      {return true;}
+    else
+    {
+      return false;
+    }
+  }
+
+  this.update = function()//update function is for the update the partcile height i.e creating the moveing in upward direction
+  {
+    if(!this.exploded)//this condition is used only when particle is not maximum height i.e.this.firework.vel.y>=0
+    {
+    this.firework.applyForce(gravity);
+    this.firework.update();
+    
+    if(this.firework.vel.y>=0)//this is the condition where the particle reaches the maximum height and starts exploding into bunch of paricles
+    {
+      this.exploded=true;
+      this.explode();
+    }
+   }
+ 
+   for(var i=this.particles.length-1;i>=0;i--)
+  {
+    this.particles[i].applyForce(gravity);
+    this.particles[i].update();
+    if(this.particles[i].done())
+    {
+      this.particles.splice(i,1);
+    }
+  }
+ }
+
+  this.explode =function()
+  {
+    for(var i=0;i<100;i++)
+    {
+      var p = new Particle(this.firework.pos.x, this.firework.pos.y,this.col,false);
+      this.particles.push(p);
+     
+    }
+  }
+
+  
+
+  this.show = function()
+  {
+    if(!this.exploded)
+    {  
+    this.firework.show();
+  }
+  for(var i=0;i<this.particles.length;i++)
+  {
+    this.particles[i].show();
+  }
+ }
+
+}
+  </script>
+  <script>
+  	var fireworks = [];
+var gravity;
+var sound;
+
+function preload()
+{
+
+  sound=loadSound("crack.mp3");
+}
+function setup()
+{
+  //changing properties of canvas 
+  createCanvas(windowWidth,windowHeight);
+  colorMode(RGB);
+  gravity = createVector(0, 0.2);
+  stroke(255);
+  strokeWeight(4);
+   sound.loop();
+ 
+}
+
+function draw()
+{
+  //simulation done in canvas
+  colorMode(RGB);
+  background(0,0,0,25);
+  if(random(1)<0.1){
+//this condition is to push(create) 10% of firework particles 
+    fireworks.push(new Firework()); //Firework() function is called
+  }
+
+ for(var i=fireworks.length-1;i>=0;i--)
+ {
+  //fire
+  fireworks[i].update();
+  fireworks[i].show();
+ 
+  if(fireworks[i].done())
+  {
+    fireworks.splice(i,1);
+  }
+}
+
+}
+  </script>
+  <!-- this line removes any default padding and style. you might only need one of these values set. -->
+  <style> body {padding: 0; margin: 0;} </style>
+</head>
+
+<body>
+</body>
+</html>
